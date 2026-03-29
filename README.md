@@ -28,10 +28,17 @@ If you're deploying a private OpenClaw Gateway on an old Mac Mini (like the auth
 ### 🚀 Key Features vs. Competitors
 Unlike basic process watchers that just verify if `node.exe` is running:
 1. **Intelligent Network Sniffer**: Capable of dynamically adjusting OpenClaw's proxy routing configuration. The script periodically validates Telegram API reachability using both direct traffic and predefined local proxy tunnels, seamlessly hot-swapping routing strategies without user intervention.
-2. **Layer 7 Application Health Checks**: Monitors the internal OpenClaw `http://127.0.0.1:18789/health` endpoint, identifying locked or zombie processes long before a system crash occurs.
-3. **Config Guardian & Rollback (v1.1.0)**: Automatically snaps a backup of `openclaw.json` when the gateway is healthy. If a Telegram Bot accidentally modifies the config with invalid syntax, the watchdog will detect the corruption, delete the invalid config, restore the last known-good snapshot, and safely kickstart the application.
-4. **Safe-Restart Protocol (v1.2.0)**: Includes `safe-restart.sh` and a strict AI Skill Directive (`SKILL.md`). This guarantees that your Telegram assistant validates its own JSON syntax errors BEFORE restarting the gateway, preventing accidental suicide disconnections.
-5. **Optimized macOS Launch Daemon Integration**: Refines standard `<string>ThrottleInterval</string>` to prevent system launchd abandonment during consecutive internal reboots.
+2. **The "Layer-7 Application Health Check"**: It strictly monitors the OpenClaw `http://127.0.0.1:18789/health` REST endpoint, destroying all "deadlocked, resource-hogging, or unresponsive-but-alive" zombie processes mercilessly by triggering a `launchctl kickstart` deployment!
+3. 🧻 **Post-crash Ass-Wiping (Config Guardian v1.1.0)**: **[LATEST]** If your AI Assistant accidentally writes garbage syntax into `openclaw.json` and causes the gateway to crash, normal watchdogs get stuck in an endless reboot cycle. Our Guardian creates a verified snapshot every 60 seconds. When a configuration corruption error occurs, it erases the broken codebase, restores the ancestral last-good snapshot, and forces a hot reload to instantly wipe your bot's catastrophic mistake!
+> ⚠️ Note: If an edit kills the gateway, the bot's newly typed configuration will be permanently purged to revert to a healthy timeline.
+4. 🧙‍♂️ **Pre-flight Zhuge Liang (Safe-Restart v1.2.0)**: Injects an inescapable SKILL directive into your AI. It prevents the bot from committing suicide by forcefully blocking it from invoking raw `launchctl` reboots. It guarantees the bot MUST use a specialized safety script `safe-restart.sh` which conducts a strict Zod schema scan and interrupts the reboot with a printable error if anomalies exist.
+5. **Native Zero-Footprint Cron Integration**: Deep macOS/Linux system-level integration. It uses minimal system memory compared to constant process loops.
+
+### ⚠️ Important Warnings & Gotchas
+Before arming the Sentinel, please acknowledge the following structural behaviors:
+- **Strict Rollback Policy (Data Sacrifices):** The "Ass-Wiping Protocol" acts out of absolute systemic preservation. If the configuration file cannot pass validations upon a crash, **it gets brutally overwritten by the 1-minute historical snapshot**. Any unvalidated code your AI just wrote will be erased forever to save the system.
+- **Instructing Your Bots:** Always ensure the provided `SKILL.md` is active in your OpenClaw plugins/skills directory. If the bot doesn't know it exists, it might try raw terminal restarts and die.
+- **Port Matching:** By default `18789` is checked. If you altered your generic gateway HTTP port, you must change `GATEWAY_PORT` in the shell script.
 
 ### 📦 Installation
 #### For macOS/Linux (Recommended)
@@ -62,12 +69,16 @@ A basic `.ps1` version is included in `scripts/watchdog-win.ps1` that emulates t
 
 ### 🚀 杀手级特性
 较目前开源社区的常规方案，本项目采用了真正的“智能应用层防线”：
-1. **独创的内置自适应代理引擎 (Smart Auto-Proxy)**: 你可能有时挂着全局 TUN VPN，有时只开 HTTP 代理。该探针每 60 秒并行测试 Telegram API 直连测速和代理测速。当直连通畅时自动从 OpenClaw 配置文件中抹除旧代理路由；代理可用时则瞬时配置上默认的 `127.0.0.1:7897` 并触发静默重启。
-2. **真正的 Layer 7 检测**: 许多守护程序只要看见 `node` 进程在苟延残喘就不会干预。本库深度调用网关的底层 `/health` REST API，专杀一切“死锁、卡资源、无响应但未退出”的僵尸状态进程，毫不留情直接触发 `launchctl kickstart` 热部署接客！
-3. 🧻 **事后擦屁股：配置自愈快照 (Config Guardian v1.1.0)**: **[最新功能]** 当机器人自己把自己的 `openclaw.json` 写坏导致网关无限崩溃时，普通看门狗会陷入无限重启的死循环。我们的守护程序每分钟验证并在健康时自动保存 `openclaw.json.watchdog_bak` 快照。当检测到网关因为配置文件破损而报错时，看门狗会直接抹除错乱的配置，将前一分钟健康的祖传快照覆盖回去，然后热重启强行复活机器帮你擦好最后一次危险操作的屁股！
-> ⚠️ 注意：此机制意味着如果你的错误修改导致了网关崩溃，你的修改将被看门狗无情抹杀并恢复到上个状态。
-4. 🧙‍♂️ **事前诸葛亮：防自杀保护闭环 (Safe-Restart v1.2.0)**: 为 AI 机器人植入硬性技能指令手册，强行拦截 AI 直接用危险命令重启网关导致断线。要求系统重启前，必须由这位“事前诸葛亮”通过 `safe-restart.sh` 做一次包含报错拦截机制的语法体检。
-5. **原生无感 Cron/Daemon 融合机制**: macOS 原汁原味系统级提权，防抛弃参数优化，几乎不产生内存侵占。
+1. **独创的内置自适应代理引擎 (Smart Auto-Proxy)**: 此探针每 60 秒并行测试 Telegram API 直连测速和代理测速。当直连通畅时自动从配置中抹除代理路由；必须翻墙时则瞬时配置上默认的本地代理端口并触发静默重启。
+2. **真正的 Layer 7 检测**: 许多守护程序只要看见进程在就不会管。本库深度调用底层 `/health` 接口，专杀一切“死锁、卡资源、但不退出”的僵尸服务。
+3. 🧻 **事后擦屁股：配置自愈快照 (Config Guardian v1.1.0)**: **[最新功能]** 当机器人把自己的 `openclaw.json` 写坏导致网关无限崩溃时，普通看门狗会陷入无限重启死循环。我们的程序每分钟在健康时自动保存快照。检测到由于配置文件破损导致的坠机后，看门狗会直接抹除错乱的配置，将前一分钟健康的快照强行覆盖回去复活机器！
+4. 🧙‍♂️ **事前诸葛亮：防自杀保护闭环 (Safe-Restart v1.2.0)**: 为 AI 机器人植入硬性技能指令手册，强行拦截 AI 直接用危险命令重启网关导致断线。系统重启前，必须由这位“事前诸葛亮”通过 `safe-restart.sh` 脚本做一次拦截体检。
+
+### ⚠️ 系统机制排雷与注意事项 (Gotchas)
+在使用这套硬核护甲前，请开发者和使用者务必明确它的如下底线逻辑：
+- **无情的时间线重置 (代码牺牲)**：为了绝对保证你的网关存活，“事后擦屁股回滚”机制在触发时，**会直接、永久丢弃那个错乱的 `openclaw.json`** ！这意味着如果大模型刚才费劲千辛万苦写了几十行配置，一旦验证不过关，它最近 1 分钟内的心血将直接消失，网关会倒流回修改前的安全健康线。(因此“事前诸葛亮”的作用就是尽量不让它发生回滚)。
+- **必须投喂 AI 技能书 (SKILL.md)**：你必须要确认包含防自杀指令的 `bot-safe-protocol/SKILL.md` 真的放入了你给网关和 AI 阅读到的根目录里。否则它会像个莽夫一样直接敲原版重启命令，依然会被弹飞。
+- **自定义你的默认代理与端口**：默认使用的健康检测点是本地 `18789` 端口，自动注入的代理通道是 `127.0.0.1:7897`。如果你的 Clash/Surge 是其它端口，请先编辑 `watchdog-mac.sh` 进行热拔插常量修改后再部署。
 
 ### 📦 安装方式
 #### 苹果 Mac (主力平台)
