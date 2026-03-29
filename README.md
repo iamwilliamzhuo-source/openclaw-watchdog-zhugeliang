@@ -4,15 +4,26 @@
 
 <a name="english"></a>
 ## 💡 English Introduction
-An intelligent, cross-platform auto-proxy monitoring script with **"Pre-flight Zhuge Liang Diagnostics"** and **"Post-crash Ass-Wiping Rollbacks"**, designed specifically for the **OpenClaw Gateway**.
-
+A high-availability watchdog designed specifically for the **OpenClaw Gateway**. Keep your bot gateway connection resilient in dynamic network environments through an innovative "Layer 7 PING Mechanism" and "Autopilot Proxy Routing".
+Additionally, it features an ultimate sanity-saving armor against AI-induced crashing loops: The **"Pre-flight Zhuge Liang"** (Syntax Interceptor) and **"Post-crash Ass-Wiping"** (Snapshot Rollback) protocols!
 
 ### ❓ Why do you need this?
-If you are running the OpenClaw Gateway on your Mac/Linux, you might have noticed an annoying problem:
-- **The zombie gateway**: Sometimes the Node.js process stays alive in the background, but the gateway fails to connect to Telegram or hangs silently.
-- **The VPN issue**: If you use a VPN or switch between direct connection and proxy (TUN/HTTP), the Telegram API connection gets lost and OpenClaw refuses to seamlessly reconnect unless you manually edit configurations and restart it.
+If you're deploying a private OpenClaw Gateway on an old Mac Mini (like the author did) or relying on local VPN tunnels, you've likely suffered from:
+1. Proxy clients frequently disconnecting or the proxy software (like Clash/Surge) abruptly terminating in the background.
+2. The network interface suddenly freezing, preventing local processes from initiating outbound connections.
+3. **The AI Nightmare:** The AI assistant accidentally rewrites its own `openclaw.json` with a missing bracket, initiates a gateway reboot, instantly kills the connection, and plunges into an eternal offline sleep.
 
-**This watchdog fixes all of that.** It performs a true "Layer-7 Application Health Check" instead of just looking if the process is running. Plus, it dynamically tests network routing and alters your OpenClaw proxy settings on the fly so you NEVER drop a message again.
+<a name="chinese"></a>
+## 💡 中文介绍
+一个专注于为 **OpenClaw 网关** 定制的“智能自适应代理”级别的看门狗与高可用防线工具。作者：**William Zhuo**。
+这套代码旨在深度解决频繁断网、动态切换代理失效等网络僵死问题。**不仅如此，它还额外配备了针对大语言模型“手欠改错配置引发坠机惨案”的终极防御装甲**：幽默且极其硬核的“诸葛亮事前拦截”与“事后擦屁股回滚”双机制守护！
+
+### ❓ 为什么要使用这个工具？（解决的核心痛点）
+如果你在 Mac（或 Linux）上长时间挂着 OpenClaw 机器人网关，你可能深受以下两个痛点的折磨：
+1. **进程假死现象 (Zombie Gateway)**：有时虽然你在任务管理器里看得到 `node` 还在运行，但机器人早就掉线了（端口卡死），这种“假活”状态下，普通的保活工具根本不会帮你重启。
+2. **梯子代理与网络切换的灾难**：你可能有时开着全局代理，有时却只开着按需（TUN/HTTP）代理。如果你的网络环境变了，OpenClaw 是不会自动变通的——它的底层网络就断了。每次都要辛苦地手动改配置然后敲击重启。
+
+**这就是这个项目的诞生原因！** 它拥有原生应用级的第七层探头（Layer 7 PING），深入检测机器人是不是真的还在正常接客。并自带强大的网络感知嗅探，网络一变，它帮你在 60 秒内后台静默为你自动切换配置文件，完成无感热恢复。全程不需你动一次手指干预。
 
 ### 🚀 Key Features vs. Competitors
 Unlike basic process watchers that just verify if `node.exe` is running:
