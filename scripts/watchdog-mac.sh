@@ -1,7 +1,8 @@
 #!/bin/bash
 # -------------------------------------------------------------------------------------
 # OpenClaw Smart Watchdog (macOS/Linux)
-# A Layer 7 health monitor with Smart Auto-Proxy routing capabilities.
+# Version: 1.1.0 - The Sentinel Update
+# A Layer 7 health monitor with Smart Auto-Proxy routing and Config Guardian capabilities.
 # -------------------------------------------------------------------------------------
 
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
@@ -14,6 +15,8 @@ API_URL="https://api.telegram.org"
 LOG_DIR="$HOME/.openclaw/logs"
 LOG_FILE="$LOG_DIR/watchdog.log"
 LAUNCHD_LABEL="gui/$(id -u)/ai.openclaw.gateway"
+CONFIG_FILE="$HOME/.openclaw/openclaw.json"
+BACKUP_FILE="$CONFIG_FILE.watchdog_bak"
 
 # Ensure dir exists
 mkdir -p "$LOG_DIR"
@@ -34,7 +37,7 @@ CONFIG_CHANGED=0
 
 # 3. Smart Proxy Routing Engine
 if [ $DIRECT_STATUS -eq 0 ]; then
-    # Direct network is available (e.g. global VPN active or clean network)
+    # Direct network is available
     if [ -n "$CURRENT_PROXY" ]; then
         echo "[$TIMESTAMP] Network Direct OK. Removing outdated Proxy config..." >> "$LOG_FILE"
         openclaw config unset channels.telegram.proxy >/dev/null 2>&1
@@ -55,15 +58,36 @@ fi
 # 4. Restart if config changed
 if [ $CONFIG_CHANGED -eq 1 ]; then
     echo "[$TIMESTAMP] Config swapped. Initiating Gateway soft kickstart..." >> "$LOG_FILE"
-    # Wait for config to flush
     sleep 1
     launchctl kickstart -k "$LAUNCHD_LABEL" >/dev/null 2>&1
     exit 0
 fi
 
-# 5. Application Layer Health Check
+# 5. Application Layer Health Check & Config Guardian
 HTTP_STATUS=$(curl -s --connect-timeout 5 -o /dev/null -w "%{http_code}" "$HEALTH_URL")
 if [ "$HTTP_STATUS" -ne 200 ]; then
-    echo "[$TIMESTAMP] Gateway health check failed (HTTP $HTTP_STATUS). Initiating hard restart." >> "$LOG_FILE"
+    echo "[$TIMESTAMP] Gateway health check failed (HTTP $HTTP_STATUS). Running diagnostics..." >> "$LOG_FILE"
+    
+    # 5.1 Config Validation Diagnostic
+    if ! openclaw config validate >/dev/null 2>&1; then
+        echo "[$TIMESTAMP] CRITICAL: openclaw.json validation failed! Configuration is corrupted." >> "$LOG_FILE"
+        if [ -f "$BACKUP_FILE" ]; then
+            echo "[$TIMESTAMP] RECOVERY: Restoring last known-good snapshot from $BACKUP_FILE..." >> "$LOG_FILE"
+            cp "$BACKUP_FILE" "$CONFIG_FILE"
+            # Wait for flush
+            sleep 1
+        else
+            echo "[$TIMESTAMP] WARNING: No backup snapshot found. Manual intervention required." >> "$LOG_FILE"
+        fi
+    fi
+
+    # 5.2 Hard Restart
+    echo "[$TIMESTAMP] Initiating hard restart." >> "$LOG_FILE"
     launchctl kickstart -k "$LAUNCHD_LABEL" >/dev/null 2>&1
+else
+    # 6. Snapshot Engine: Gateway is healthy, updating snapshot
+    if openclaw config validate >/dev/null 2>&1; then
+        # Only overwrite backup if it's completely valid and active
+        cp "$CONFIG_FILE" "$BACKUP_FILE"
+    fi
 fi
