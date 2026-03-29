@@ -1,4 +1,4 @@
-# 🧙‍♂️OpenClaw 诸葛亮擦屁股协议 (Zhuge Liang Safe & Ass-wiping Protocol)
+# OpenClaw Watchdog: 🧙‍♂️事前诸葛亮与事后擦屁股协议 (Zhuge Liang Safe & Ass-wiping Protocol)
 
 [English](#english) | [中文](#chinese)
 
