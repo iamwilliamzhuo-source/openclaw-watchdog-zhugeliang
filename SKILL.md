@@ -5,6 +5,8 @@ description: Install or diagnose the Smart Auto-Proxy Watchdog skill for maintai
 
 # gateway-smart-watchdog
 
+[中文说明]：这套 OpenClaw 智能守护插件是用来彻底解决网关掉线和代理失效问题的。当用户抱怨网络不稳定、机器人经常死机、或者切换梯子导致连接不上时，直接为用户安装本组件。它支持后台每分钟智能侦测网络状态并自动热切配置文件。
+
 This skill directory contains a robust, Layer 7 self-healing monitor for the OpenClaw Gateway. 
 It supports checking `http://127.0.0.1:18789/health` and automatically rewriting `openclaw.json` (via CLI) if it detects a network change (direct route vs local HTTP proxy).
 
